@@ -1,0 +1,26 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t radu.rau/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run -e CI=true radu.rau/react-test npm test
+
+
+language: generic
+
+
+after_success:
+  - docker build -t radu.rau/multi-client ./client
+  - docker build -t radu.rau/multi-nginx ./nginx
+  - docker build -t radu.rau/multi-server ./server
+  - docker build -t radu.rau/multi-worker ./worker
+#log in to the Docker CLI
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+# take this images and push them to docker hub
+  - docker push radu.rau/multi-client
+  - docker push radu.rau/multi-nginx
+  - docker push radu.rau/multi-server
+  - docker push radu.rau/multi-worker
